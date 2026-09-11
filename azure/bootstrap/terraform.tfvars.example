@@ -1,0 +1,13 @@
+location                     = "japaneast"
+workload_resource_group_name = "rg-aitev-dev"
+state_resource_group_name    = "rg-aitev-tfstate"
+storage_account_suffix       = "replace8"
+state_container_name         = "tfstate"
+state_key                    = "terraform/azure-validation.tfstate"
+github_repository            = "owner/azure-ai-terraform-validation"
+# Only when GitHub customizes OIDC sub with stable IDs:
+# github_subject_repository = "owner@OWNER_ID/azure-ai-terraform-validation@REPOSITORY_ID"
+
+tags = {
+  Purpose = "Terraform State and GitHub OIDC bootstrap"
+}

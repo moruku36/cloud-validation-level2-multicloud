@@ -1,0 +1,15 @@
+location     = "japaneast"
+project_name = "azure-ai-terraform-validation"
+environment  = "dev"
+
+# Public keys are not credentials, but use your own key. Never place a private
+# key, password, client secret, subscription ID, or tenant ID in this file.
+admin_ssh_public_key = "ssh-ed25519 REPLACE_WITH_YOUR_PUBLIC_KEY"
+
+tags = {
+  Purpose = "AI infrastructure validation"
+}
+
+monitoring_log_retention_days = 30
+vm_cpu_threshold_percent      = 80
+http_5xx_threshold            = 5

@@ -1,0 +1,29 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+export DEBIAN_FRONTEND=noninteractive
+apt-get update
+apt-get install -y --no-install-recommends nginx
+
+instance_name="$(curl --fail --silent --show-error \
+  -H 'Metadata-Flavor: Google' \
+  http://metadata.google.internal/computeMetadata/v1/instance/name)"
+zone="$(curl --fail --silent --show-error \
+  -H 'Metadata-Flavor: Google' \
+  http://metadata.google.internal/computeMetadata/v1/instance/zone | awk -F/ '{print $NF}')"
+
+cat >/var/www/html/index.html <<EOF
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><title>GCP AI Infrastructure Validation</title></head>
+<body>
+  <h1>GCP AI Infrastructure Validation</h1>
+  <p>Nginx is running behind a Google Cloud external Application Load Balancer.</p>
+  <p>Environment: ${environment}</p>
+  <p>Backend: $instance_name ($zone)</p>
+</body>
+</html>
+EOF
+
+systemctl enable nginx
+systemctl restart nginx

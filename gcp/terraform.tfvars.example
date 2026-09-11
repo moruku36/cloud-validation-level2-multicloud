@@ -1,0 +1,11 @@
+project_id  = "example-project-id"
+region      = "asia-northeast1"
+zones       = ["asia-northeast1-a", "asia-northeast1-c"]
+name_prefix = "ai-infra-validation"
+environment = "dev"
+subnet_cidr = "10.40.0.0/24"
+machine_type = "e2-micro"
+
+labels = {
+  repository = "gcp-ai-terraform-validation"
+}

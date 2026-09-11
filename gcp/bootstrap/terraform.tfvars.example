@@ -1,0 +1,12 @@
+project_id        = "example-project-id"
+state_bucket_name = "example-unique-gcp-terraform-state-bucket"
+region            = "asia-northeast1"
+name_prefix       = "ai-infra-validation"
+environment       = "dev"
+github_owner      = "moruku36"
+github_repository = "gcp-ai-terraform-validation"
+github_environment = "terraform-production"
+
+labels = {
+  repository = "gcp-ai-terraform-validation"
+}

@@ -1,0 +1,22 @@
+#cloud-config
+package_update: true
+packages:
+  - nginx
+
+write_files:
+  - path: /var/www/html/index.html
+    owner: root:root
+    permissions: "0644"
+    content: |
+      <!doctype html>
+      <html lang="en">
+      <head><meta charset="utf-8"><title>Azure AI Terraform Validation</title></head>
+      <body>
+        <h1>Azure AI Terraform Validation</h1>
+        <p>Served by ${server_name}</p>
+      </body>
+      </html>
+
+runcmd:
+  - [systemctl, enable, --now, nginx]
+

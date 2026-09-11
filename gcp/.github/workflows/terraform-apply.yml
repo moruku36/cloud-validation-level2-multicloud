@@ -1,0 +1,70 @@
+name: Terraform Apply
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "**/*.tf"
+      - "**/*.tftpl"
+      - ".github/workflows/terraform-*.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: terraform-production
+  cancel-in-progress: false
+
+jobs:
+  apply:
+    # Cleanup safety gate: enable only after bootstrap and State restoration.
+    if: vars.GCP_ENVIRONMENT_ACTIVE == 'true'
+    runs-on: ubuntu-latest
+    environment: terraform-production
+    permissions:
+      contents: read
+      id-token: write
+    env:
+      TF_IN_AUTOMATION: "true"
+      TF_INPUT: "false"
+      TF_VAR_project_id: ${{ secrets.GCP_PROJECT_ID }}
+      TF_VAR_apply_service_account_email: ${{ secrets.GCP_APPLY_SERVICE_ACCOUNT }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: google-github-actions/auth@v3
+        with:
+          workload_identity_provider: ${{ secrets.GCP_WIF_PROVIDER }}
+          service_account: ${{ secrets.GCP_APPLY_SERVICE_ACCOUNT }}
+      - uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.9.8
+      - name: Initialize GCS backend
+        run: >-
+          terraform init -input=false
+          -backend-config="bucket=${{ secrets.GCP_TF_STATE_BUCKET }}"
+          -backend-config="prefix=terraform/root"
+      - name: Create saved plan
+        shell: bash
+        run: |
+          set +e
+          terraform plan -no-color -out=tfplan >plan.log 2>&1
+          status=$?
+          set -e
+          grep -E '^(Plan:|No changes\.)' plan.log || true
+          if [ "$status" -ne 0 ]; then
+            sed -e "s/${TF_VAR_project_id}/<PROJECT_ID>/g" plan.log | tail -80
+            exit "$status"
+          fi
+      - name: Apply the reviewed saved plan
+        shell: bash
+        run: |
+          set +e
+          terraform apply -no-color -auto-approve tfplan >apply.log 2>&1
+          status=$?
+          set -e
+          grep -E '^Apply complete!' apply.log || true
+          if [ "$status" -ne 0 ]; then
+            sed -e "s/${TF_VAR_project_id}/<PROJECT_ID>/g" apply.log | tail -80
+            exit "$status"
+          fi
