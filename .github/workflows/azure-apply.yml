@@ -1,0 +1,39 @@
+﻿name: Azure Terraform Apply
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  id-token: write
+
+defaults:
+  run:
+    working-directory: azure
+
+jobs:
+  apply:
+    name: Terraform apply (Azure)
+    if: vars.AZURE_ENVIRONMENT_ACTIVE == 'true'
+    runs-on: ubuntu-latest
+    env:
+      ARM_CLIENT_ID: ${{ vars.AZURE_APPLY_CLIENT_ID }}
+      ARM_SUBSCRIPTION_ID: ${{ vars.AZURE_SUBSCRIPTION_ID }}
+      ARM_TENANT_ID: ${{ vars.AZURE_TENANT_ID }}
+      ARM_USE_OIDC: "true"
+      TF_IN_AUTOMATION: "true"
+      TF_INPUT: "0"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.9.8
+      - run: Copy-Item backend.tf.example backend.tf
+        shell: pwsh
+      - run: >-
+          terraform init -input=false
+          -backend-config="resource_group_name=${{ vars.TF_STATE_RESOURCE_GROUP }}"
+          -backend-config="storage_account_name=${{ vars.TF_STATE_STORAGE_ACCOUNT }}"
+          -backend-config="container_name=${{ vars.TF_STATE_CONTAINER }}"
+          -backend-config="key=${{ vars.TF_STATE_KEY }}"
+      - run: terraform apply -auto-approve -input=false -no-color

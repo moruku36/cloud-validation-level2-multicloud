@@ -1,0 +1,39 @@
+﻿name: GCP Terraform Apply
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  id-token: write
+
+defaults:
+  run:
+    working-directory: gcp
+
+jobs:
+  apply:
+    name: Terraform apply (GCP)
+    if: vars.GCP_ENVIRONMENT_ACTIVE == 'true'
+    runs-on: ubuntu-latest
+    env:
+      TF_IN_AUTOMATION: "true"
+      TF_INPUT: "false"
+      TF_VAR_project_id: ${{ secrets.GCP_PROJECT_ID }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: google-github-actions/auth@v2
+        with:
+          project_id: ${{ secrets.GCP_PROJECT_ID }}
+          workload_identity_provider: ${{ secrets.GCP_WIF_PROVIDER }}
+          service_account: ${{ secrets.GCP_APPLY_SA_EMAIL }}
+      - uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.9.8
+      - run: Copy-Item backend.tf.example backend.tf
+        shell: pwsh
+      - run: >-
+          terraform init -input=false
+          -backend-config="bucket=${{ secrets.GCP_STATE_BUCKET }}"
+          -backend-config="prefix=${{ secrets.GCP_STATE_PREFIX }}"
+      - run: terraform apply -auto-approve -input=false -no-color

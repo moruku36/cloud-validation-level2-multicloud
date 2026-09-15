@@ -156,3 +156,12 @@ GitHub cloud plan/applyはRepository Variable `AZURE_ENVIRONMENT_ACTIVE=true`の
 - [学びとAWS比較](../docs/azure/06-lessons-learned.md)
 - [CI/CD・OIDC・Remote State](../docs/azure/07-cicd-oidc-remote-state.md)
 - [Monitoring](../docs/azure/08-monitoring.md)
+
+## 再実行時の注意点・既知の留意事項 (Gotchas)
+
+> [!WARNING]
+> **1. クリーンアップ時のリソース依存ロック**:
+> Application Gateway と VMSS（バックエンドプール）の削除時、リソースグループ削除ではなく個別 `terraform destroy` を行うと、NICのバインド解放待ちで一時的にタイムアウトやエラーが発生することがあります。リソースグループごとの一括削除が最も確実です。
+>
+> **2. Entra Workload Identity の Subject 整合性**:
+> PR 時の OIDC トークンの Subject クレーム（`repo:moruku36/cloud-validation-level2-multicloud:pull_request`）が Entra 側の Federated Credential と厳密に一致していることを確認してください。

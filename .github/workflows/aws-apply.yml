@@ -1,24 +1,21 @@
-name: Terraform apply
+﻿name: AWS Terraform Apply
 
 on:
-  push:
-    branches:
-      - main
-    paths:
-      - "**.tf"
-      - "**.tfvars.example"
-      - "backend.tf.example"
-      - ".github/workflows/terraform-apply.yml"
+  workflow_dispatch:
 
 permissions:
   contents: read
   id-token: write
 
+defaults:
+  run:
+    working-directory: aws
+
 jobs:
   apply:
-    name: Plan and apply main
+    name: Terraform apply (AWS)
+    if: vars.AWS_ENVIRONMENT_ACTIVE == 'true'
     runs-on: ubuntu-latest
-    environment: terraform-production
     steps:
       - uses: actions/checkout@v4
       - uses: hashicorp/setup-terraform@v3
@@ -36,5 +33,4 @@ jobs:
           -backend-config="key=${{ vars.TF_STATE_KEY }}"
           -backend-config="region=${{ vars.AWS_REGION }}"
           -backend-config="encrypt=true"
-      - run: terraform plan -input=false -lock-timeout=5m -out=tfplan
-      - run: terraform apply -input=false tfplan
+      - run: terraform apply -auto-approve -input=false -lock-timeout=5m

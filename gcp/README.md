@@ -155,3 +155,12 @@ planを確認するまでapplyしません。Remote State利用時は実Bucket�
 - [学びとAWS/Azure比較](../docs/gcp/06-lessons-learned.md)
 - [CI/CD・WIF・Remote State](../docs/gcp/07-cicd-oidc-remote-state.md)
 - [Monitoring](../docs/gcp/08-monitoring.md)
+
+## 再実行時の注意点・既知の留意事項 (Gotchas)
+
+> [!WARNING]
+> **1. WIF（Workload Identity Federation）の事前バインド**:
+> GitHub Actions から接続する前に、GCP 側の Workload Identity Pool および Service Account にリポジトリ（`repo:moruku36/cloud-validation-level2-multicloud:*`）に対する `roles/iam.workloadIdentityUser` ロールを正しくバインドしておく必要があります。
+>
+> **2. ロードバランサーのヘルスチェック伝播時間**:
+> External ALB および MIG は、デプロイ直後プロキシサブネットからのヘルスチェックが `HEALTHY` になるまで数分を要します。HTTP 200 テストはヘルスチェック安定後に実施してください。

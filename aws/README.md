@@ -153,3 +153,12 @@ terraform destroy
 - [監視設計・実装状況](../docs/aws/08-monitoring.md)
 - [Antigravity向け引継ぎ](../docs/aws/08-antigravity-handoff.md)
 - [最終結果・スコア・Cleanup](../docs/aws/09-final-results-and-cleanup.md)
+
+## 再実行時の注意点・既知の留意事項 (Gotchas)
+
+> [!WARNING]
+> **1. Terraform バージョンと S3 Native State Locking の不整合**:
+> `backend.tf.example` に記載されている `use_lockfile = true` は **Terraform v1.10.0 以降** でサポートされた機能です。CI ワークフローやローカル環境で Terraform v1.9.x を使用する場合、このオプションは構文エラーとなるため、`dynamodb_table` によるロックへ切り替えるか、Terraform を v1.10+ へ更新してください。
+>
+> **2. IAM Role の権限分離**:
+> 検証時は PR（plan）と Apply で同一の IAM ロールを使用していましたが、実運用環境では PR 用に ReadOnly / Plan 専用の権限を分離することを推奨します。

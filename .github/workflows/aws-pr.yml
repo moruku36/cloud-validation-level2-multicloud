@@ -1,14 +1,22 @@
-name: Terraform pull request
+﻿name: AWS Terraform PR
 
 on:
   pull_request:
+    paths:
+      - "aws/**"
+      - ".github/workflows/aws-*.yml"
+  workflow_dispatch:
 
 permissions:
   contents: read
 
+defaults:
+  run:
+    working-directory: aws
+
 jobs:
   validate:
-    name: Format and validate
+    name: Format and validate (AWS)
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -22,9 +30,12 @@ jobs:
       - run: terraform -chdir=bootstrap validate
 
   plan:
-    name: Plan trusted pull request
+    name: Plan trusted PR (AWS)
     needs: validate
-    if: github.event.pull_request.head.repo.full_name == github.repository
+    if: >-
+      github.event_name == 'pull_request' &&
+      github.event.pull_request.head.repo.full_name == github.repository &&
+      vars.AWS_ENVIRONMENT_ACTIVE == 'true'
     runs-on: ubuntu-latest
     permissions:
       contents: read

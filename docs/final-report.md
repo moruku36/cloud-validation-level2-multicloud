@@ -1,4 +1,4 @@
-# AIは3クラウドの実装をどこまで担えるか
+﻿# AIは3クラウドの実装をどこまで担えるか
 ## AWS / Azure / GCP ライフサイクル横断検証・最終レポート
 
 作成日: 2026-09-08（日本時間）
@@ -7,7 +7,7 @@
 
 **今回のLevel 2相当の検証では、安全境界・レビュー・承認ポイントを設けることで、設計からTerraform実装、CI/CD、短期認証、Remote State、監視、障害試験、復旧、cleanupまでをAI主体で完了できた。**
 
-価値があったのは、最初のコード生成だけではない。APIやProviderの制約、認証claimの不一致、部分apply、入力差、削除の伝播遅延に対し、AIが原因を調べ、差分を限定して修正し、状態の収束まで確認したことである。3環境とも、実行記録上は管理対象リソースの削除・残存確認まで完了している。[A1](https://github.com/moruku36/aws-ai-terraform-validation/blob/c5e5ab86aa701034347971ed52d6876bcee3594d/docs/09-final-results-and-cleanup.md)[Z1](https://github.com/moruku36/azure-ai-terraform-validation/blob/b5344c6c6ca9b2220c132137ed5bc26dd08b6753/docs/05-results.md)[G1](https://github.com/moruku36/gcp-ai-terraform-validation/blob/8fbc809bd787d46801d7ff8e030eb40c0db4b35d/docs/05-results.md)
+価値があったのは、最初のコード生成だけではない。APIやProviderの制約、認証claimの不一致、部分apply、入力差、削除の伝播遅延に対し、AIが原因を調べ、差分を限定して修正し、状態の収束まで確認したことである。3環境とも、実行記録上は管理対象リソースの削除・残存確認まで完了している。[A1](aws/09-final-results-and-cleanup.md)[Z1](azure/05-results.md)[G1](gcp/05-results.md)
 
 この結果は、クラウド固有のAPIやTerraform記法の差をAIが相当程度吸収できることを示す。一方、要件、対象範囲、IAMの許容範囲、公開・課金の受容、本人確認、破壊的操作の承認は人間側に残った。人間の専門性は、AIの出力を評価し、実行してよい境界を決めるために必要だった。
 
@@ -17,7 +17,7 @@
 
 本レポートの「Level 2」は、この検証で扱った標準的なWeb基盤と運用ライフサイクルを指す便宜的な呼称であり、業界共通の資格・成熟度基準ではない。
 
-共通要件は、L7ロードバランサーからPrivate VM 2台へHTTPを配信し、VMのPublic IP・Internet向けSSHを設けず、Terraform、GitHub Actions、長期鍵を置かないFederation、Remote State、最低限の監視、安全な障害試験、削除まで確認することだった。AWS、Azure、GCPの順に実施し、前段の学びを後段へ持ち込んだ。[A1](https://github.com/moruku36/aws-ai-terraform-validation/blob/c5e5ab86aa701034347971ed52d6876bcee3594d/docs/09-final-results-and-cleanup.md)[Z1](https://github.com/moruku36/azure-ai-terraform-validation/blob/b5344c6c6ca9b2220c132137ed5bc26dd08b6753/docs/05-results.md)[G1](https://github.com/moruku36/gcp-ai-terraform-validation/blob/8fbc809bd787d46801d7ff8e030eb40c0db4b35d/docs/05-results.md)
+共通要件は、L7ロードバランサーからPrivate VM 2台へHTTPを配信し、VMのPublic IP・Internet向けSSHを設けず、Terraform、GitHub Actions、長期鍵を置かないFederation、Remote State、最低限の監視、安全な障害試験、削除まで確認することだった。AWS、Azure、GCPの順に実施し、前段の学びを後段へ持ち込んだ。[A1](aws/09-final-results-and-cleanup.md)[Z1](azure/05-results.md)[G1](gcp/05-results.md)
 
 本レポートは各リポジトリの実装と公開済み実行記録を照合した事後分析である。クラウドへの再接続、apply、障害注入、destroyは実行していない。原本のStateや全コマンドログは公開されていないため、記録された成功は「実行記録による確認」、コードから分かる状態は「静的レビュー」、そこからの解釈は「考察」として扱う。
 
@@ -116,7 +116,7 @@ flowchart LR
 | ログ | 専用S3、14日保持の設計 | 専用Storage、30日保持の設計 | Project標準Cloud Logging |
 | Cleanup境界 | State + tag + 既知名 | State + Resource Group | State + label + 既知名。Project保持 |
 
-根拠: 各クラウドの構成・監視・bootstrap・workflow。[A2](https://github.com/moruku36/aws-ai-terraform-validation/blob/c5e5ab86aa701034347971ed52d6876bcee3594d/docs/08-monitoring.md)[A3](https://github.com/moruku36/aws-ai-terraform-validation/blob/c5e5ab86aa701034347971ed52d6876bcee3594d/bootstrap/main.tf)[A4](https://github.com/moruku36/aws-ai-terraform-validation/tree/c5e5ab86aa701034347971ed52d6876bcee3594d/.github/workflows)[Z2](https://github.com/moruku36/azure-ai-terraform-validation/blob/b5344c6c6ca9b2220c132137ed5bc26dd08b6753/docs/08-monitoring.md)[Z3](https://github.com/moruku36/azure-ai-terraform-validation/blob/b5344c6c6ca9b2220c132137ed5bc26dd08b6753/bootstrap/main.tf)[Z4](https://github.com/moruku36/azure-ai-terraform-validation/tree/b5344c6c6ca9b2220c132137ed5bc26dd08b6753/.github/workflows)[G2](https://github.com/moruku36/gcp-ai-terraform-validation/blob/8fbc809bd787d46801d7ff8e030eb40c0db4b35d/docs/08-monitoring.md)[G3](https://github.com/moruku36/gcp-ai-terraform-validation/tree/8fbc809bd787d46801d7ff8e030eb40c0db4b35d/bootstrap)[G4](https://github.com/moruku36/gcp-ai-terraform-validation/tree/8fbc809bd787d46801d7ff8e030eb40c0db4b35d/.github/workflows)
+根拠: 各クラウドの構成・監視・bootstrap・workflow。[A2](aws/08-monitoring.md)[A3](../aws/bootstrap/main.tf)[A4](../.github/workflows/aws-pr.yml)[Z2](azure/08-monitoring.md)[Z3](../azure/bootstrap/main.tf)[Z4](../.github/workflows/azure-pr.yml)[G2](gcp/08-monitoring.md)[G3](../gcp/bootstrap)[G4](../.github/workflows/gcp-pr.yml)
 
 同一要件への実装であっても、同一構成ではない。GCPはMIGによる自己修復を含み、AWS/Azureは個別VM管理である。GCPのGlobal LBも、バックエンドを複数リージョン化したことを意味しない。AWSのNATなし構成は採用OSの取得経路に依存し、一般の外部リポジトリへアクセスできる設計とは異なる。
 
@@ -162,7 +162,7 @@ xychart-beta
 | Cleanup bootstrap | 9件 | 12件 | 13件 |
 | 削除後 | 管理対象残存なし | 管理対象残存0 | 管理対象active 0 |
 
-数値は[A1](https://github.com/moruku36/aws-ai-terraform-validation/blob/c5e5ab86aa701034347971ed52d6876bcee3594d/docs/09-final-results-and-cleanup.md)[Z1](https://github.com/moruku36/azure-ai-terraform-validation/blob/b5344c6c6ca9b2220c132137ed5bc26dd08b6753/docs/05-results.md)[G1](https://github.com/moruku36/gcp-ai-terraform-validation/blob/8fbc809bd787d46801d7ff8e030eb40c0db4b35d/docs/05-results.md)を転記した。合計139件はTerraform管理項目の削除数（48 + 53 + 38）であり、VM台数や独立した課金リソース数ではない。GCPのVMはMIGが管理するため、Terraform項目数だけで構成規模を比較できない。
+数値は[A1](aws/09-final-results-and-cleanup.md)[Z1](azure/05-results.md)[G1](gcp/05-results.md)を転記した。合計139件はTerraform管理項目の削除数（48 + 53 + 38）であり、VM台数や独立した課金リソース数ではない。GCPのVMはMIGが管理するため、Terraform項目数だけで構成規模を比較できない。
 
 - **safe plan 1回はGCPの初回rootに限る。** bootstrapはCLI解析失敗2回、型エラー1回を含め4回。監視でも部分applyと修正があった。
 - **drift 0は、誤ったplanがなかったという意味ではない。** GCPは18 addの不整合をapply前に止めた。MIG縮小による意図的な一時差分は、意図しないdriftの集計には含まれない。
@@ -187,7 +187,7 @@ xychart-beta
 | GCP: Monitoring API制約 | 部分作成後に400 | duration/comparison/resource mappingを修正。未作成資源だけを再plan |
 | Azure: cleanup伝播遅延 | NSG Rule削除の一時拒否 | 残存3件を確認しdelete-only planを再生成。Stateを強制操作せず収束 |
 
-根拠: [A1](https://github.com/moruku36/aws-ai-terraform-validation/blob/c5e5ab86aa701034347971ed52d6876bcee3594d/docs/09-final-results-and-cleanup.md)[Z5](https://github.com/moruku36/azure-ai-terraform-validation/blob/b5344c6c6ca9b2220c132137ed5bc26dd08b6753/docs/04-troubleshooting.md)[G5](https://github.com/moruku36/gcp-ai-terraform-validation/blob/8fbc809bd787d46801d7ff8e030eb40c0db4b35d/docs/04-troubleshooting.md)。
+根拠: [A1](aws/09-final-results-and-cleanup.md)[Z5](azure/04-troubleshooting.md)[G5](gcp/04-troubleshooting.md)。
 
 これらはすべてAI能力の不足だけに帰せる事象ではない。生成コードの誤り、ローカル環境、認証設定、クラウドの非同期性が混在している。評価すべきは、問題の発生数に加え、影響範囲を限定し、承認境界を守り、状態を収束させたかどうかである。
 
@@ -201,7 +201,7 @@ xychart-beta
 | Azure | VM 1台をdeallocate | Backend異常、Fired相当→Resolved相当、HTTP 200維持 | 全監視ルール個別の発報、通知Receiver経由の到達は未確認 |
 | GCP | MIG target sizeを2→1→2 | 容量低下、Incident Open→Closed、2台Healthy復旧、HTTP 200維持 | Health Check AlertのFiredは未確認。全ルール・外部通知の試験ではない |
 
-根拠: [A2](https://github.com/moruku36/aws-ai-terraform-validation/blob/c5e5ab86aa701034347971ed52d6876bcee3594d/docs/08-monitoring.md)[Z2](https://github.com/moruku36/azure-ai-terraform-validation/blob/b5344c6c6ca9b2220c132137ed5bc26dd08b6753/docs/08-monitoring.md)[G2](https://github.com/moruku36/gcp-ai-terraform-validation/blob/8fbc809bd787d46801d7ff8e030eb40c0db4b35d/docs/08-monitoring.md)。
+根拠: [A2](aws/08-monitoring.md)[Z2](azure/08-monitoring.md)[G2](gcp/08-monitoring.md)。
 
 「監視が作れた」から一歩進み、実際の信号、アラート状態、サービス継続、復旧後の整合性まで確認できた。ただし、異なる障害を使っているため、検知速度や可用性をクラウド間で順位付けする実験ではない。通知先はいずれも未構成で、担当者への通知到達までを含む本番運用検証ではない。
 
@@ -216,43 +216,43 @@ xychart-beta
 | 境界の保護 | 他用途の資源・既存managed policyを保持 | 検証外Resource Groupを保持 | Project、既存default network、既存SA 2件を保持 |
 | Cleanup後CI | State/OIDC削除済み。明示的ACTIVE gateなし | ACTIVE gateあり | ACTIVE=false、cloud jobのSkippedを記録 |
 
-根拠: [A1](https://github.com/moruku36/aws-ai-terraform-validation/blob/c5e5ab86aa701034347971ed52d6876bcee3594d/docs/09-final-results-and-cleanup.md)[Z1](https://github.com/moruku36/azure-ai-terraform-validation/blob/b5344c6c6ca9b2220c132137ed5bc26dd08b6753/docs/05-results.md)[G1](https://github.com/moruku36/gcp-ai-terraform-validation/blob/8fbc809bd787d46801d7ff8e030eb40c0db4b35d/docs/05-results.md)とworkflow静的確認。[A4](https://github.com/moruku36/aws-ai-terraform-validation/tree/c5e5ab86aa701034347971ed52d6876bcee3594d/.github/workflows)[Z4](https://github.com/moruku36/azure-ai-terraform-validation/tree/b5344c6c6ca9b2220c132137ed5bc26dd08b6753/.github/workflows)[G4](https://github.com/moruku36/gcp-ai-terraform-validation/tree/8fbc809bd787d46801d7ff8e030eb40c0db4b35d/.github/workflows)
+根拠: [A1](aws/09-final-results-and-cleanup.md)[Z1](azure/05-results.md)[G1](gcp/05-results.md)とworkflow静的確認。[A4](../.github/workflows/aws-pr.yml)[Z4](../.github/workflows/azure-pr.yml)[G4](../.github/workflows/gcp-pr.yml)
 
 残存0は、**検証で管理した対象のactiveリソースが残っていない**という意味である。アカウント全体が空、soft-delete資源が物理消去済み、保持ログが全消去済み、後日請求が一切ない、という保証ではない。GCPのProject標準Logging bucketも削除対象外だった。本レポートは公開記録を確認したもので、現在のクラウド残存を再照会したものではない。
 
-費用についてはAWSのみ関連サービス概算約0.25 USDが記録されているが、厳密なタグ配賦ではない。Azure/GCPの同条件実測がないため、費用順位や費用削減率は算出しない。[A1](https://github.com/moruku36/aws-ai-terraform-validation/blob/c5e5ab86aa701034347971ed52d6876bcee3594d/docs/09-final-results-and-cleanup.md)
+費用についてはAWSのみ関連サービス概算約0.25 USDが記録されているが、厳密なタグ配賦ではない。Azure/GCPの同条件実測がないため、費用順位や費用削減率は算出しない。[A1](aws/09-final-results-and-cleanup.md)
 
 ## 8. 最終コードレビューで判明した再現性・統制の課題
 
 ### 8.1 AWSのS3 lockingとTerraformバージョン
 
-AWSの`backend.tf.example`は`use_lockfile = true`だが、両workflowはTerraform 1.9.8を指定し、rootの`required_version`も1.8以降を許容している。[A3](https://github.com/moruku36/aws-ai-terraform-validation/blob/c5e5ab86aa701034347971ed52d6876bcee3594d/bootstrap/main.tf)[A4](https://github.com/moruku36/aws-ai-terraform-validation/tree/c5e5ab86aa701034347971ed52d6876bcee3594d/.github/workflows)
+AWSの`backend.tf.example`は`use_lockfile = true`だが、両workflowはTerraform 1.9.8を指定し、rootの`required_version`も1.8以降を許容している。[A3](../aws/bootstrap/main.tf)[A4](../.github/workflows/aws-pr.yml)
 
 S3 native lockingはTerraform 1.10.0で導入された機能である。[H1](https://github.com/hashicorp/terraform/blob/v1.10.0/CHANGELOG.md) したがって、現在の版指定とbackend設定は整合しない。過去の成功記録を現行checkoutの再現成功として扱うことはできず、再検証前に対応版へ揃え、実行版とログを記録する必要がある。このレポート作成では実装を変更していない。
 
 ### 8.2 AWSのPRは権限上read-onlyではない
 
-AWSのPRとapplyは同じrepository VariableのRoleを使用し、bootstrapも両subjectを同じRoleで信頼している。[A3](https://github.com/moruku36/aws-ai-terraform-validation/blob/c5e5ab86aa701034347971ed52d6876bcee3594d/bootstrap/main.tf)[A4](https://github.com/moruku36/aws-ai-terraform-validation/tree/c5e5ab86aa701034347971ed52d6876bcee3594d/.github/workflows) PRで実行するコマンドがplanだけでも、Identityの権限がread-onlyであることとは異なる。Azure/GCPではPRとapplyのIdentityおよび権限を分離している。
+AWSのPRとapplyは同じrepository VariableのRoleを使用し、bootstrapも両subjectを同じRoleで信頼している。[A3](../aws/bootstrap/main.tf)[A4](../.github/workflows/aws-pr.yml) PRで実行するコマンドがplanだけでも、Identityの権限がread-onlyであることとは異なる。Azure/GCPではPRとapplyのIdentityおよび権限を分離している。
 
 ### 8.3 承認とsaved planの関係
 
-3クラウドともmain jobの中でplanを生成してapplyする。Environment指定は確認できるが、YAMLだけではrequired reviewer等の実設定を確認できない。また、PRで見たplanそのものをmainへ引き継いで承認している構成ではない。[A4](https://github.com/moruku36/aws-ai-terraform-validation/tree/c5e5ab86aa701034347971ed52d6876bcee3594d/.github/workflows)[Z4](https://github.com/moruku36/azure-ai-terraform-validation/tree/b5344c6c6ca9b2220c132137ed5bc26dd08b6753/.github/workflows)[G4](https://github.com/moruku36/gcp-ai-terraform-validation/tree/8fbc809bd787d46801d7ff8e030eb40c0db4b35d/.github/workflows)
+3クラウドともmain jobの中でplanを生成してapplyする。Environment指定は確認できるが、YAMLだけではrequired reviewer等の実設定を確認できない。また、PRで見たplanそのものをmainへ引き継いで承認している構成ではない。[A4](../.github/workflows/aws-pr.yml)[Z4](../.github/workflows/azure-pr.yml)[G4](../.github/workflows/gcp-pr.yml)
 
 したがって「人間が生成後の当該saved planを必ずレビューした」という仕組みまでは証明できない。再利用時には、承認対象と実際に適用するplanをどう一致させるかを明確にする必要がある。
 
 ### 8.4 Locking、CI停止、検証順序
 
-Azure/GCPはPRのState読取権限を限定するため`-lock=false`を使い、apply側ではlockingを無効化していない。標準lockingを採用していても、全planがロックを取るわけではない。[Z4](https://github.com/moruku36/azure-ai-terraform-validation/tree/b5344c6c6ca9b2220c132137ed5bc26dd08b6753/.github/workflows)[G4](https://github.com/moruku36/gcp-ai-terraform-validation/tree/8fbc809bd787d46801d7ff8e030eb40c0db4b35d/.github/workflows)
+Azure/GCPはPRのState読取権限を限定するため`-lock=false`を使い、apply側ではlockingを無効化していない。標準lockingを採用していても、全planがロックを取るわけではない。[Z4](../.github/workflows/azure-pr.yml)[G4](../.github/workflows/gcp-pr.yml)
 
 AWSにはAzure/GCP相当の環境有効化gateがなく、削除済みの認証・Stateへ依存して停止する構成である。GCPのcloud-plan jobにはstatic-checksへの`needs`がなく、静的検証完了を待つ構造ではない。これらは今回の完了記録とは別に、次回利用前の統制改善点として残る。
 
 ## 9. GCPの安定化をどう解釈するか
 
-GCPはroot safe plan初回成功、意図しないdrift 0、No changes 13回、cleanup各1回という成果を得た。Azureの振り返りには、入力値の統一、OIDC claim事前確認、cleanup依存順序、環境有効化フラグ、監視の評価窓を次段で改善する方針が記されている。[Z6](https://github.com/moruku36/azure-ai-terraform-validation/blob/b5344c6c6ca9b2220c132137ed5bc26dd08b6753/docs/06-lessons-learned.md)[G1](https://github.com/moruku36/gcp-ai-terraform-validation/blob/8fbc809bd787d46801d7ff8e030eb40c0db4b35d/docs/05-results.md)
+GCPはroot safe plan初回成功、意図しないdrift 0、No changes 13回、cleanup各1回という成果を得た。Azureの振り返りには、入力値の統一、OIDC claim事前確認、cleanup依存順序、環境有効化フラグ、監視の評価窓を次段で改善する方針が記されている。[Z6](azure/06-lessons-learned.md)[G1](gcp/05-results.md)
 
 このうち、入力差の抑制、cleanup順序、環境有効化gateはGCPの実装・結果にも現れている。一方、OIDC subject不一致はGCPでも発生しており、反省を持ち込めばすべての失敗を防げたわけではない。
 
-**本実験から支持できるのは、前段の失敗を設計・確認手順へ反映する進め方が有効だったという実務的示唆である。** 単一の実施者・逐次実験であり、要件や構成、AIへの指示も完全に固定されていないため、改善をGCP自体の容易さやAIモデルの能力向上へ単独で帰属させることはできない。[G6](https://github.com/moruku36/gcp-ai-terraform-validation/blob/8fbc809bd787d46801d7ff8e030eb40c0db4b35d/docs/06-lessons-learned.md)
+**本実験から支持できるのは、前段の失敗を設計・確認手順へ反映する進め方が有効だったという実務的示唆である。** 単一の実施者・逐次実験であり、要件や構成、AIへの指示も完全に固定されていないため、改善をGCP自体の容易さやAIモデルの能力向上へ単独で帰属させることはできない。[G6](gcp/06-lessons-learned.md)
 
 ## 10. AI時代のクラウドエンジニアに何が残るのか
 
@@ -315,27 +315,27 @@ flowchart TB
 | Azure | `b5344c6c6ca9b2220c132137ed5bc26dd08b6753` |
 | GCP | `8fbc809bd787d46801d7ff8e030eb40c0db4b35d` |
 
-- A1: [AWS 最終結果・介入集計・Cleanup](https://github.com/moruku36/aws-ai-terraform-validation/blob/c5e5ab86aa701034347971ed52d6876bcee3594d/docs/09-final-results-and-cleanup.md)
-- A2: [AWS 監視・障害試験](https://github.com/moruku36/aws-ai-terraform-validation/blob/c5e5ab86aa701034347971ed52d6876bcee3594d/docs/08-monitoring.md)
-- A3: [AWS bootstrap / IAM](https://github.com/moruku36/aws-ai-terraform-validation/blob/c5e5ab86aa701034347971ed52d6876bcee3594d/bootstrap/main.tf)
-- A4: [AWS workflows](https://github.com/moruku36/aws-ai-terraform-validation/tree/c5e5ab86aa701034347971ed52d6876bcee3594d/.github/workflows)
-- Z1: [Azure 実行結果・集計・Cleanup](https://github.com/moruku36/azure-ai-terraform-validation/blob/b5344c6c6ca9b2220c132137ed5bc26dd08b6753/docs/05-results.md)
-- Z2: [Azure 監視・障害試験](https://github.com/moruku36/azure-ai-terraform-validation/blob/b5344c6c6ca9b2220c132137ed5bc26dd08b6753/docs/08-monitoring.md)
-- Z3: [Azure bootstrap / RBAC](https://github.com/moruku36/azure-ai-terraform-validation/blob/b5344c6c6ca9b2220c132137ed5bc26dd08b6753/bootstrap/main.tf)
-- Z4: [Azure workflows](https://github.com/moruku36/azure-ai-terraform-validation/tree/b5344c6c6ca9b2220c132137ed5bc26dd08b6753/.github/workflows)
-- Z5: [Azure 障害記録](https://github.com/moruku36/azure-ai-terraform-validation/blob/b5344c6c6ca9b2220c132137ed5bc26dd08b6753/docs/04-troubleshooting.md)
-- Z6: [Azure 学び・GCPへの改善点](https://github.com/moruku36/azure-ai-terraform-validation/blob/b5344c6c6ca9b2220c132137ed5bc26dd08b6753/docs/06-lessons-learned.md)
-- G1: [GCP 実行結果・集計・Cleanup](https://github.com/moruku36/gcp-ai-terraform-validation/blob/8fbc809bd787d46801d7ff8e030eb40c0db4b35d/docs/05-results.md)
-- G2: [GCP 監視・障害試験](https://github.com/moruku36/gcp-ai-terraform-validation/blob/8fbc809bd787d46801d7ff8e030eb40c0db4b35d/docs/08-monitoring.md)
-- G3: [GCP bootstrap / WIF / IAM](https://github.com/moruku36/gcp-ai-terraform-validation/tree/8fbc809bd787d46801d7ff8e030eb40c0db4b35d/bootstrap)
-- G4: [GCP workflows](https://github.com/moruku36/gcp-ai-terraform-validation/tree/8fbc809bd787d46801d7ff8e030eb40c0db4b35d/.github/workflows)
-- G5: [GCP 障害記録](https://github.com/moruku36/gcp-ai-terraform-validation/blob/8fbc809bd787d46801d7ff8e030eb40c0db4b35d/docs/04-troubleshooting.md)
-- G6: [GCP 学び・最終評価](https://github.com/moruku36/gcp-ai-terraform-validation/blob/8fbc809bd787d46801d7ff8e030eb40c0db4b35d/docs/06-lessons-learned.md)
+- A1: [AWS 最終結果・介入集計・Cleanup](aws/09-final-results-and-cleanup.md)
+- A2: [AWS 監視・障害試験](aws/08-monitoring.md)
+- A3: [AWS bootstrap / IAM](../aws/bootstrap/main.tf)
+- A4: [AWS workflows](../.github/workflows/aws-pr.yml)
+- Z1: [Azure 実行結果・集計・Cleanup](azure/05-results.md)
+- Z2: [Azure 監視・障害試験](azure/08-monitoring.md)
+- Z3: [Azure bootstrap / RBAC](../azure/bootstrap/main.tf)
+- Z4: [Azure workflows](../.github/workflows/azure-pr.yml)
+- Z5: [Azure 障害記録](azure/04-troubleshooting.md)
+- Z6: [Azure 学び・GCPへの改善点](azure/06-lessons-learned.md)
+- G1: [GCP 実行結果・集計・Cleanup](gcp/05-results.md)
+- G2: [GCP 監視・障害試験](gcp/08-monitoring.md)
+- G3: [GCP bootstrap / WIF / IAM](../gcp/bootstrap)
+- G4: [GCP workflows](../.github/workflows/gcp-pr.yml)
+- G5: [GCP 障害記録](gcp/04-troubleshooting.md)
+- G6: [GCP 学び・最終評価](gcp/06-lessons-learned.md)
 - H1: [HashiCorp Terraform 1.10.0 CHANGELOG（S3 native state locking導入）](https://github.com/hashicorp/terraform/blob/v1.10.0/CHANGELOG.md)
 
-- [AWS 構成コード](https://github.com/moruku36/aws-ai-terraform-validation/tree/c5e5ab86aa701034347971ed52d6876bcee3594d)
+- [AWS 構成コード](../aws/)
 
-- [AZURE 構成コード](https://github.com/moruku36/azure-ai-terraform-validation/tree/b5344c6c6ca9b2220c132137ed5bc26dd08b6753)
+- [AZURE 構成コード](../azure/)
 
-- [GCP 構成コード](https://github.com/moruku36/gcp-ai-terraform-validation/tree/8fbc809bd787d46801d7ff8e030eb40c0db4b35d)
+- [GCP 構成コード](../gcp/)
 
