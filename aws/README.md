@@ -1,4 +1,4 @@
-﻿# AWS + Terraform 検証環境
+# AWS + Terraform 検証環境
 
 **[AWS / Azure / GCP 横断・最終比較レポート](../docs/final-report.md)** — 実行結果、AIの失敗と復旧、人間の責任、再現性レビュー。
 
@@ -115,7 +115,7 @@ flowchart TB
 
 ## 再現手順
 
-前提: Terraform `>= 1.8.0, < 2.0.0`、AWS認証済みのローカル環境、対象リソースを作成できる最小権限。現在はbootstrapを含めて削除済みのため、再検証時は`bootstrap/`でState BucketとOIDC Roleを先に作成し、`backend.tf.example`を基にbackend設定を作成してからRootを適用します。
+前提: Terraform `>= 1.10.0, < 2.0.0`、AWS認証済みのローカル環境、対象リソースを作成できる最小権限。現在はbootstrapを含めて削除済みのため、再検証時は`bootstrap/`でState BucketとOIDC Roleを先に作成し、`backend.tf.example`を基にbackend設定を作成してからRootを適用します。
 
 ```powershell
 Copy-Item bootstrap/terraform.tfvars.example bootstrap/terraform.tfvars
@@ -151,7 +151,7 @@ terraform destroy
 - [学びと次の段階](../docs/aws/06-lessons-learned.md)
 - [CI/CD・OIDC・Remote State](../docs/aws/07-cicd-oidc-remote-state.md)
 - [監視設計・実装状況](../docs/aws/08-monitoring.md)
-- [Antigravity向け引継ぎ](../docs/aws/08-antigravity-handoff.md)
+- [Antigravity向け引継ぎ](../docs/aws/handoff-antigravity.md)
 - [最終結果・スコア・Cleanup](../docs/aws/09-final-results-and-cleanup.md)
 
 ## 再実行時の注意点・既知の留意事項 (Gotchas)

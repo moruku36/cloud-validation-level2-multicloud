@@ -1,4 +1,4 @@
-﻿# validate-all.ps1
+# validate-all.ps1
 # Multi-cloud Terraform format and validation script
 param (
     [switch]$FormatCheck = $true,
@@ -14,9 +14,8 @@ Write-Host " Running Multi-Cloud Terraform Checks" -ForegroundColor Cyan
 Write-Host "=========================================" -ForegroundColor Cyan
 
 if (-not (Get-Command terraform -ErrorAction SilentlyContinue)) {
-    Write-Warning "'terraform' CLI is not found in PATH. Please install Terraform to execute local validations."
-    Write-Host "Skipping execution."
-    exit 0
+    Write-Error "'terraform' CLI is not found in PATH. Please install Terraform to execute local validations."
+    exit 1
 }
 
 foreach ($cloud in $targets) {

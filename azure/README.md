@@ -1,4 +1,4 @@
-﻿# Azure AI Terraform Validation
+# Azure AI Terraform Validation
 
 **[AWS / Azure / GCP 横断・最終比較レポート](../docs/final-report.md)** — 実行結果、AIの失敗と復旧、人間の責任、再現性レビュー。
 
@@ -128,23 +128,37 @@ Azure編は成功と評価する。クラウドエンジニアLevel 2相当の�
 - 監視ログはLog AnalyticsのProvider登録と取り込み費用を避け、専用Storage archiveを採用した。
 - Resource Groupを明確な作成・cleanup境界として利用できる。
 
-## Terraform実行方法
+## 再現手順（共通5ステップ）
 
-実値ファイル、State、plan、CredentialはGitへ追加しない。
+前提: Terraform `>= 1.10.0, < 2.0.0`、Azure CLI ログイン済み、対象サブスクリプションへの十分な権限。現在はリソースグループごと削除済みのため、再検証時は以下の手順で適用します。
 
 ```powershell
+# 1. ワークロード用リソースグループの作成（RootおよびBootstrapで参照）
+az group create --name rg-aitev-dev --location japaneast
+
+# 2. Bootstrap (State Storage & Workload Identity) の構築
+Copy-Item bootstrap/terraform.tfvars.example bootstrap/terraform.tfvars
+# bootstrap/terraform.tfvars の識別子（storage_account_suffix 等）を設定
+terraform -chdir=bootstrap init
+terraform -chdir=bootstrap plan -out=tfplan
+terraform -chdir=bootstrap apply tfplan
+
+# 3. Root の適用（ローカル State 初期構築または Remote Backend 設定）
 Copy-Item terraform.tfvars.example terraform.tfvars
-# terraform.tfvarsへ自分のSSH公開鍵を設定する
-terraform init
+# terraform.tfvars へ SSH公開鍵等を設定
+Copy-Item backend.tf.example backend.tf
+terraform init -backend-config="resource_group_name=rg-aitev-tfstate" -backend-config="storage_account_name=<YOUR_STORAGE_ACCOUNT>" -backend-config="container_name=tfstate" -backend-config="key=terraform/azure-validation.tfstate"
 terraform fmt -check
 terraform validate
 terraform plan -out=tfplan
-# planを確認してからのみ実行する
 terraform apply tfplan
 terraform output -raw application_url
-```
 
-GitHub cloud plan/applyはRepository Variable `AZURE_ENVIRONMENT_ACTIVE=true`の場合だけ実行する。cleanup後は未設定または`false`にし、文書更新による意図しない再作成を防止する。
+# 4. Clean Destroy（検証終了時）
+terraform destroy
+terraform -chdir=bootstrap destroy
+az group delete --name rg-aitev-dev --yes --no-wait
+```
 
 ## ドキュメント
 
@@ -161,7 +175,8 @@ GitHub cloud plan/applyはRepository Variable `AZURE_ENVIRONMENT_ACTIVE=true`の
 
 > [!WARNING]
 > **1. クリーンアップ時のリソース依存ロック**:
-> Application Gateway と VMSS（バックエンドプール）の削除時、リソースグループ削除ではなく個別 `terraform destroy` を行うと、NICのバインド解放待ちで一時的にタイムアウトやエラーが発生することがあります。リソースグループごとの一括削除が最も確実です。
+> Application Gateway と個別 Backend VM（NIC / バックエンドプール関連付け）の削除時、リソースグループ削除ではなく個別 `terraform destroy` を行うと、NICのバインド解放待ちで一時的にタイムアウトやエラーが発生することがあります。リソースグループごとの一括削除が最も確実です。
 >
 > **2. Entra Workload Identity の Subject 整合性**:
 > PR 時の OIDC トークンの Subject クレーム（`repo:moruku36/cloud-validation-level2-multicloud:pull_request`）が Entra 側の Federated Credential と厳密に一致していることを確認してください。
+

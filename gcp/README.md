@@ -1,4 +1,4 @@
-﻿# GCP AI Terraform Validation
+# GCP AI Terraform Validation
 
 **[AWS / Azure / GCP 横断・最終比較レポート](../docs/final-report.md)** — 実行結果、AIの失敗と復旧、人間の責任、再現性レビュー。
 
@@ -132,18 +132,38 @@ GCPではRegional MIGによるZone分散と自己修復、Global External Applic
 
 クラウドエンジニアLevel 2相当の設計、Terraform実装、CI/CD、Monitoring、障害切り分け、delete-only cleanupはAI主体で完了しました。人間が必要だったのは初回クラウド変更、exact IAM binding置換、アカウント本人確認などの承認境界です。
 
-## ローカル検証
+## 再現手順（共通5ステップ）
+
+前提: Terraform `>= 1.10.0, < 2.0.0`、Google Cloud CLI ログイン済み、対象プロジェクトへの十分な権限。現在はリソース削除済みのため、再検証時は以下の手順で適用します。
 
 ```powershell
+# 1. 認証とプロジェクト設定
 gcloud auth application-default login
 $env:TF_VAR_project_id = gcloud config get-value project
-terraform init -backend=false
+
+# 2. Bootstrap (GCS State Bucket & WIF) の構築
+Copy-Item bootstrap/terraform.tfvars.example bootstrap/terraform.tfvars
+# bootstrap/terraform.tfvars の識別子を設定
+terraform -chdir=bootstrap init
+terraform -chdir=bootstrap plan -out=tfplan
+terraform -chdir=bootstrap apply tfplan
+
+# 3. Root の適用（Remote State 接続またはローカル検証）
+# ローカル検証の場合:
+# terraform init -backend=false
+# Remote Backend 接続の場合:
+Copy-Item backend.tf.example backend.tf
+terraform init -backend-config="bucket=<YOUR_GCS_STATE_BUCKET>" -backend-config="prefix=terraform/root"
 terraform fmt -check -recursive
 terraform validate
 terraform plan -out=tfplan
-```
+terraform apply tfplan
+terraform output -raw load_balancer_ip
 
-planを確認するまでapplyしません。Remote State利用時は実Bucket名をコマンド引数または安全なCI設定から渡します。再構築時だけ`GCP_ENVIRONMENT_ACTIVE=true`とし、cleanup後は`false`を維持します。
+# 4. Clean Destroy（検証終了時）
+terraform destroy
+terraform -chdir=bootstrap destroy
+```
 
 ## ドキュメント
 
@@ -164,3 +184,4 @@ planを確認するまでapplyしません。Remote State利用時は実Bucket�
 >
 > **2. ロードバランサーのヘルスチェック伝播時間**:
 > External ALB および MIG は、デプロイ直後プロキシサブネットからのヘルスチェックが `HEALTHY` になるまで数分を要します。HTTP 200 テストはヘルスチェック安定後に実施してください。
+

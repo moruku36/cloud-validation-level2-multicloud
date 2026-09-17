@@ -10,7 +10,7 @@
 4. Pull Requestとmain mergeで実行権限を分離する。
 5. 変更・失敗・判断を公開可能な文書として残す。
 
-Antigravityには、まず本書と`README.md`、`docs/01-scenario.md`から`docs/07-cicd-oidc-remote-state.md`、`.github/workflows/`、`bootstrap/`を読ませてください。実環境の識別子、Credential、Stateはリポジトリに存在しません。
+Antigravityには、まず本書と`README.md`、`docs/aws/01-scenario.md`から`docs/aws/07-cicd-oidc-remote-state.md`、`.github/workflows/`、`aws/bootstrap/`を読ませてください。実環境の識別子、Credential、Stateはリポジトリに存在しません。
 
 ## 現在の到達点
 
@@ -115,7 +115,7 @@ terraform plan
 
 ```text
 このリポジトリはAWS + Terraform + GitHub Actions OIDCの検証環境です。
-まず README.md と docs/08-antigravity-handoff.md、docs/07-cicd-oidc-remote-state.md、.github/workflows/、bootstrap/ を読み、現在の設計と安全制約を理解してください。
+まず README.md と docs/aws/handoff-antigravity.md、docs/aws/07-cicd-oidc-remote-state.md、.github/workflows/、aws/bootstrap/ を読み、現在の設計と安全制約を理解してください。
 
 実環境のCredential、State、backend実値、AWS Account ID、Role ARN、リソースID、ALB URLは出力・保存・commitしないでください。
 作業開始時は git status、main最新化、terraform fmt -check、validate、planで変更なしを確認してください。
