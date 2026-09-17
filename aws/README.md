@@ -113,32 +113,36 @@ flowchart TB
 
 人間介入は意味のある操作単位で8カテゴリ、AIは設計、実装、診断、CI/CD操作、障害試験、復旧、削除、残存確認を自律実行しました。最終評価は **93 / 100** です。集計基準、全障害、減点理由は[最終結果とCleanup](../docs/aws/09-final-results-and-cleanup.md)に記録しています。
 
-## 再現手順
+## 再現手順（共通5ステップ）
 
-前提: Terraform `>= 1.10.0, < 2.0.0`、AWS認証済みのローカル環境、対象リソースを作成できる最小権限。現在はbootstrapを含めて削除済みのため、再検証時は`bootstrap/`でState BucketとOIDC Roleを先に作成し、`backend.tf.example`を基にbackend設定を作成してからRootを適用します。
+前提: Terraform `>= 1.10.0, < 2.0.0`、AWS CLI 認証済みのローカル環境、対象リソースを作成できる最小権限。現在は bootstrap を含めて削除済みのため、再検証時は以下の手順で適用します。
 
 ```powershell
+# 1. 前提確認と環境変数の準備
+aws sts get-caller-identity
+
+# 2. Bootstrap (S3 State Bucket & GitHub OIDC Role) の構築
 Copy-Item bootstrap/terraform.tfvars.example bootstrap/terraform.tfvars
-# bootstrap/terraform.tfvarsの識別子を設定して内容を確認する
+# bootstrap/terraform.tfvars の識別子を設定
 terraform -chdir=bootstrap init
 terraform -chdir=bootstrap plan -out=tfplan
 terraform -chdir=bootstrap apply tfplan
 
-Copy-Item terraform.tfvars.example terraform.tfvars
+# 3. Backend 設定（Remote State の有効化）
 Copy-Item backend.tf.example backend.tf
-terraform init
+Copy-Item terraform.tfvars.example terraform.tfvars
+terraform init -backend-config="bucket=<YOUR_TF_STATE_BUCKET>" -backend-config="key=terraform/aws-validation.tfstate" -backend-config="region=ap-northeast-1" -backend-config="encrypt=true"
+
+# 4. Root の適用（Core Infra & Monitoring）
 terraform fmt -check
 terraform validate
-terraform plan -out tfplan
-# planを確認してから実行する
+terraform plan -out=tfplan
 terraform apply tfplan
 terraform output -raw alb_url
-```
 
-検証終了後は、課金を止めるために必ず削除します。
-
-```powershell
+# 5. Clean Destroy（検証終了時）
 terraform destroy
+terraform -chdir=bootstrap destroy
 ```
 
 ## ドキュメント
@@ -158,7 +162,8 @@ terraform destroy
 
 > [!WARNING]
 > **1. Terraform バージョンと S3 Native State Locking の不整合**:
-> `backend.tf.example` に記載されている `use_lockfile = true` は **Terraform v1.10.0 以降** でサポートされた機能です。CI ワークフローやローカル環境で Terraform v1.9.x を使用する場合、このオプションは構文エラーとなるため、`dynamodb_table` によるロックへ切り替えるか、Terraform を v1.10+ へ更新してください。
+> `backend.tf.example` に記載されている `use_lockfile = true` は **Terraform v1.10.0 以降** でサポートされた機能です。Terraform v1.9.x 以前の環境では構文エラーとなるため、ローカル・CI ともに Terraform v1.10+ の使用が必須です（旧バージョン運用の場合は `dynamodb_table` ロックへの切り替えが必要となります）。
 >
 > **2. IAM Role の権限分離**:
 > 検証時は PR（plan）と Apply で同一の IAM ロールを使用していましたが、実運用環境では PR 用に ReadOnly / Plan 専用の権限を分離することを推奨します。
+

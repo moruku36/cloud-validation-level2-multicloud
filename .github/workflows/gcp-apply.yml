@@ -1,4 +1,4 @@
-﻿name: GCP Terraform Apply
+name: GCP Terraform Apply
 
 on:
   workflow_dispatch:
@@ -29,7 +29,7 @@ jobs:
           service_account: ${{ secrets.GCP_APPLY_SA_EMAIL }}
       - uses: hashicorp/setup-terraform@v3
         with:
-          terraform_version: 1.9.8
+          terraform_version: 1.10.5
       - run: Copy-Item backend.tf.example backend.tf
         shell: pwsh
       - run: >-

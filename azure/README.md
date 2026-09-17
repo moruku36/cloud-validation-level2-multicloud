@@ -133,31 +133,35 @@ Azure編は成功と評価する。クラウドエンジニアLevel 2相当の�
 前提: Terraform `>= 1.10.0, < 2.0.0`、Azure CLI ログイン済み、対象サブスクリプションへの十分な権限。現在はリソースグループごと削除済みのため、再検証時は以下の手順で適用します。
 
 ```powershell
-# 1. ワークロード用リソースグループの作成（RootおよびBootstrapで参照）
-az group create --name rg-aitev-dev --location japaneast
+# 1. ワークロード用リソースグループの事前作成（Root および Bootstrap の RBAC バインド先）
+# ※ Root Terraform (main.tf) はこの既存 RG の作成も管理するため、事前作成する場合はインポートまたは
+#    Bootstrap 適用前に作成し、Root 側の定義と名前（例: rg-aitev-dev 等のプレースホルダ）を揃えます。
+az group create --name <WORKLOAD_RESOURCE_GROUP_NAME> --location japaneast
 
 # 2. Bootstrap (State Storage & Workload Identity) の構築
 Copy-Item bootstrap/terraform.tfvars.example bootstrap/terraform.tfvars
-# bootstrap/terraform.tfvars の識別子（storage_account_suffix 等）を設定
+# bootstrap/terraform.tfvars の識別子（storage_account_suffix, workload_resource_group_name 等）を設定
 terraform -chdir=bootstrap init
 terraform -chdir=bootstrap plan -out=tfplan
 terraform -chdir=bootstrap apply tfplan
 
-# 3. Root の適用（ローカル State 初期構築または Remote Backend 設定）
+# 3. Backend 設定（Remote State の有効化）
+Copy-Item backend.tf.example backend.tf
 Copy-Item terraform.tfvars.example terraform.tfvars
 # terraform.tfvars へ SSH公開鍵等を設定
-Copy-Item backend.tf.example backend.tf
-terraform init -backend-config="resource_group_name=rg-aitev-tfstate" -backend-config="storage_account_name=<YOUR_STORAGE_ACCOUNT>" -backend-config="container_name=tfstate" -backend-config="key=terraform/azure-validation.tfstate"
+terraform init -backend-config="resource_group_name=<STATE_RESOURCE_GROUP_NAME>" -backend-config="storage_account_name=<YOUR_STORAGE_ACCOUNT>" -backend-config="container_name=tfstate" -backend-config="key=terraform/azure-validation.tfstate"
+
+# 4. Root の適用（VNet, AppGW, Linux VM, Monitoring）
 terraform fmt -check
 terraform validate
 terraform plan -out=tfplan
 terraform apply tfplan
 terraform output -raw application_url
 
-# 4. Clean Destroy（検証終了時）
+# 5. Clean Destroy（検証終了時）
 terraform destroy
 terraform -chdir=bootstrap destroy
-az group delete --name rg-aitev-dev --yes --no-wait
+az group delete --name <WORKLOAD_RESOURCE_GROUP_NAME> --yes --no-wait
 ```
 
 ## ドキュメント
@@ -179,4 +183,5 @@ az group delete --name rg-aitev-dev --yes --no-wait
 >
 > **2. Entra Workload Identity の Subject 整合性**:
 > PR 時の OIDC トークンの Subject クレーム（`repo:moruku36/cloud-validation-level2-multicloud:pull_request`）が Entra 側の Federated Credential と厳密に一致していることを確認してください。
+
 

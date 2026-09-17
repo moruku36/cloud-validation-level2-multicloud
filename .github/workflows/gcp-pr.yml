@@ -1,4 +1,4 @@
-﻿name: GCP Terraform PR
+name: GCP Terraform PR
 
 on:
   pull_request:
@@ -26,7 +26,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: hashicorp/setup-terraform@v3
         with:
-          terraform_version: 1.9.8
+          terraform_version: 1.10.5
       - run: terraform fmt -check -recursive
       - run: terraform init -backend=false -input=false
       - run: terraform validate
@@ -55,7 +55,7 @@ jobs:
           service_account: ${{ secrets.GCP_PR_SA_EMAIL }}
       - uses: hashicorp/setup-terraform@v3
         with:
-          terraform_version: 1.9.8
+          terraform_version: 1.10.5
       - run: Copy-Item backend.tf.example backend.tf
         shell: pwsh
       - run: >-

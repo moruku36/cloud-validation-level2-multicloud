@@ -185,10 +185,10 @@ CI/CD パイプラインを稼働させる場合、GitHub リポジトリの Var
 | **AWS** | `AWS_TERRAFORM_ROLE_ARN` | Variable | Repository | GitHub OIDC で Assume する IAM Role ARN |
 | **AWS** | `TF_STATE_BUCKET` | Variable | Repository | Terraform S3 State バケット名 |
 | **AWS** | `TF_STATE_KEY` | Variable | Repository | S3 State オブジェクトキー (例: `terraform/aws-validation.tfstate`) |
-| **Azure** | `AZURE_SUBSCRIPTION_ID` | Secret | Repository | Azure サブスクリプション ID |
-| **Azure** | `AZURE_TENANT_ID` | Secret | Repository | Microsoft Entra テナント ID |
-| **Azure** | `AZURE_PR_CLIENT_ID` | Secret | Repository | PR 用 Managed Identity の Client ID (Reader) |
-| **Azure** | `AZURE_APPLY_CLIENT_ID` | Secret | Environment (`terraform-production`) | Apply 用 Managed Identity の Client ID (Contributor) |
+| **Azure** | `AZURE_SUBSCRIPTION_ID` | Variable | Repository | Azure サブスクリプション ID |
+| **Azure** | `AZURE_TENANT_ID` | Variable | Repository | Microsoft Entra テナント ID |
+| **Azure** | `AZURE_PR_CLIENT_ID` | Variable | Repository | PR 用 Managed Identity の Client ID (Reader) |
+| **Azure** | `AZURE_APPLY_CLIENT_ID` | Variable | Repository | Apply 用 Managed Identity の Client ID (Contributor) |
 | **Azure** | `TF_STATE_RESOURCE_GROUP` | Variable | Repository | State 用 Storage Account の Resource Group 名 |
 | **Azure** | `TF_STATE_STORAGE_ACCOUNT` | Variable | Repository | State 用 Storage Account 名 |
 | **Azure** | `TF_STATE_CONTAINER` | Variable | Repository | State 用 Blob Container 名 |
@@ -196,9 +196,14 @@ CI/CD パイプラインを稼働させる場合、GitHub リポジトリの Var
 | **GCP** | `GCP_PROJECT_ID` | Secret | Repository | 対象 Google Cloud プロジェクト ID |
 | **GCP** | `GCP_WIF_PROVIDER` | Secret | Repository | WIF Provider リソース名 (`projects/.../locations/global/workloadIdentityPools/.../providers/...`) |
 | **GCP** | `GCP_PR_SA_EMAIL` | Secret | Repository | PR 用 Service Account Email (Viewer / State Reader) |
-| **GCP** | `GCP_APPLY_SA_EMAIL` | Secret | Environment (`terraform-production`) | Apply 用 Service Account Email (Editor / State Admin) |
+| **GCP** | `GCP_APPLY_SA_EMAIL` | Secret | Repository | Apply 用 Service Account Email (Editor / State Admin) |
 | **GCP** | `GCP_STATE_BUCKET` | Secret | Repository | State 用 GCS バケット名 |
 | **GCP** | `GCP_STATE_PREFIX` | Secret | Repository | State GCS プレフィックス (例: `terraform/root`) |
+
+> [!NOTE]
+> **モノレポにおける変数名のスコープと注意点**:
+> - Azure の各識別子は workflow 内で `vars.*`（Repository Variables）として参照されています。
+> - AWS と Azure の双方で `TF_STATE_KEY` という同名変数を使用しています。1つの GitHub リポジトリで両方を同時に運用する場合は、値が衝突するため workflow 側のキー名（例: `AWS_TF_STATE_KEY` / `AZURE_TF_STATE_KEY`）を分離するか、環境ごとに切り替えて運用してください。
 
 ---
 

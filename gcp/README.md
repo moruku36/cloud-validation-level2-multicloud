@@ -148,19 +148,18 @@ terraform -chdir=bootstrap init
 terraform -chdir=bootstrap plan -out=tfplan
 terraform -chdir=bootstrap apply tfplan
 
-# 3. Root の適用（Remote State 接続またはローカル検証）
-# ローカル検証の場合:
-# terraform init -backend=false
-# Remote Backend 接続の場合:
+# 3. Backend 設定（Remote State の有効化）
 Copy-Item backend.tf.example backend.tf
 terraform init -backend-config="bucket=<YOUR_GCS_STATE_BUCKET>" -backend-config="prefix=terraform/root"
+
+# 4. Root の適用（VPC, GCLB, MIG, Monitoring）
 terraform fmt -check -recursive
 terraform validate
 terraform plan -out=tfplan
 terraform apply tfplan
 terraform output -raw load_balancer_ip
 
-# 4. Clean Destroy（検証終了時）
+# 5. Clean Destroy（検証終了時）
 terraform destroy
 terraform -chdir=bootstrap destroy
 ```
@@ -184,4 +183,5 @@ terraform -chdir=bootstrap destroy
 >
 > **2. ロードバランサーのヘルスチェック伝播時間**:
 > External ALB および MIG は、デプロイ直後プロキシサブネットからのヘルスチェックが `HEALTHY` になるまで数分を要します。HTTP 200 テストはヘルスチェック安定後に実施してください。
+
 

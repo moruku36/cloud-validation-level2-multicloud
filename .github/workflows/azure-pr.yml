@@ -1,4 +1,4 @@
-﻿name: Azure Terraform PR
+name: Azure Terraform PR
 
 on:
   pull_request:
@@ -26,7 +26,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: hashicorp/setup-terraform@v3
         with:
-          terraform_version: 1.9.8
+          terraform_version: 1.10.5
       - run: terraform fmt -check -recursive
       - run: terraform init -backend=false -input=false
       - run: terraform validate
@@ -53,7 +53,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: hashicorp/setup-terraform@v3
         with:
-          terraform_version: 1.9.8
+          terraform_version: 1.10.5
       - run: Copy-Item backend.tf.example backend.tf
         shell: pwsh
       - run: >-
