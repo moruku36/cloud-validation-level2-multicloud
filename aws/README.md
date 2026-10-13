@@ -167,3 +167,14 @@ terraform -chdir=bootstrap destroy
 > **2. IAM Role の権限分離**:
 > 検証時は PR（plan）と Apply で同一の IAM ロールを使用していましたが、実運用環境では PR 用に ReadOnly / Plan 専用の権限を分離することを推奨します。
 
+## English
+
+### AWS + Terraform Validation Environment
+
+This directory contains the AWS-specific Terraform validation setup and execution records for Multi-cloud Validation Level 2.
+
+#### Architecture & Scope
+- VPC, subnet, Internet Gateway, and route table configuration
+- - Security Groups with least-privilege inbound and outbound rules
+  - - Target compute deployment and CloudWatch monitoring/alarm integration
+    - - End-to-end automated lifecycle verification: `plan` -> `apply` -> `verify` -> `destroy`
