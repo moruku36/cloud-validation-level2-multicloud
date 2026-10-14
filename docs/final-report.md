@@ -1,11 +1,11 @@
-﻿# AIは3クラウドの実装をどこまで担えるか
+# AIは3クラウドの実装をどこまで担えるか
 ## AWS / Azure / GCP ライフサイクル横断検証・最終レポート
 
 作成日: 2026-09-08（日本時間）
 
 ## 1. 結論
 
-**今回のLevel 2相当の検証では、安全境界・レビュー・承認ポイントを設けることで、設計からTerraform実装、CI/CD、短期認証、Remote State、監視、障害試験、復旧、cleanupまでをAI主体で完了できた。**
+**今回のLevel 2相当の検証では、全体設計と安全境界・レビュー・承認ポイントを人間が定めたうえで、コンポーネント選定、Terraform実装、CI/CD、短期認証、Remote State、監視、障害試験、復旧、cleanupの具体的実装と技術課題対応をCodex主体で完了できた。**（2026-10-14 説明補足: 元の「設計からAI主体」は、全体設計は人間、コンポーネント選定・具体的実装・技術課題対応はCodexと読む。第2節参照）
 
 価値があったのは、最初のコード生成だけではない。APIやProviderの制約、認証claimの不一致、部分apply、入力差、削除の伝播遅延に対し、AIが原因を調べ、差分を限定して修正し、状態の収束まで確認したことである。3環境とも、実行記録上は管理対象リソースの削除・残存確認まで完了している。[A1](aws/09-final-results-and-cleanup.md)[Z1](azure/05-results.md)[G1](gcp/05-results.md)
 
@@ -15,7 +15,13 @@
 
 ## 2. 実験範囲と評価方法
 
-本レポートの「Level 2」は、この検証で扱った標準的なWeb基盤と運用ライフサイクルを指す便宜的な呼称であり、業界共通の資格・成熟度基準ではない。
+本レポートの「Level 2」は、各クラウドベンダーの資格体系の進行を参考に設定した検証区分であり、この検証では標準的なWeb基盤と運用ライフサイクルを扱った。設計意図と資格との関係は以下に補足する。
+
+**資格区分の定義と実験設計（説明補足: 2026-10-14）** 本節の補足は既存実験の説明訂正であり、作成日（2026-09-08）・数値・比較表・証拠・参照コミット・実験記録は変更していない。
+
+本検証のLevel 1〜3は、各クラウドベンダーの資格体系に見られる段階を参考に、Level 1を基礎、Level 2を管理・実装を中心とした中級、Level 3をより高度なアーキテクト設計・判断として整理した検証区分である。Level 2では[Azure Administrator Associate](https://learn.microsoft.com/en-us/credentials/certifications/azure-administrator/)、[AWS Solutions Architect – Associate](https://aws.amazon.com/certification/certified-solutions-architect-associate/)、[Google Cloud Associate Cloud Engineer](https://cloud.google.com/learn/certification/cloud-engineer)などの資格で扱う領域を参考にしている。各社の資格体系や対象範囲は異なり、公式な共通レベル、試験範囲の網羅、資格との同等性を示すものではない。より高度なアーキテクト区分を考える際の参考として、[AWS Solutions Architect – Professional](https://aws.amazon.com/certification/certified-solutions-architect-professional/)、[Azure Solutions Architect Expert](https://learn.microsoft.com/en-us/credentials/certifications/azure-solutions-architect/)、[Google Cloud Professional Cloud Architect](https://cloud.google.com/learn/certification/cloud-architect)、[Google Cloud 資格一覧](https://cloud.google.com/learn/certification)がある。
+
+実験設計: 全体設計は本人が行った。LB + VM2台 + ネットワーク疎通のIaaS構成を定め、監視・カオス・フォールトトレランス・API操作を要件にした。CodexがAWS/Azure/GCPの具体的なコンポーネントを選び、構築と技術課題対応をほぼ実施した。本人がAWSの結果/チケット/ノウハウをAzureへ、Azureの成功失敗知見をGCPへ引き継ぐ設計にした。
 
 共通要件は、L7ロードバランサーからPrivate VM 2台へHTTPを配信し、VMのPublic IP・Internet向けSSHを設けず、Terraform、GitHub Actions、長期鍵を置かないFederation、Remote State、最低限の監視、安全な障害試験、削除まで確認することだった。AWS、Azure、GCPの順に実施し、前段の学びを後段へ持ち込んだ。[A1](aws/09-final-results-and-cleanup.md)[Z1](azure/05-results.md)[G1](gcp/05-results.md)
 
@@ -254,6 +260,8 @@ GCPはroot safe plan初回成功、意図しないdrift 0、No changes 13回、c
 
 **本実験から支持できるのは、前段の失敗を設計・確認手順へ反映する進め方が有効だったという実務的示唆である。** 単一の実施者・逐次実験であり、要件や構成、AIへの指示も完全に固定されていないため、改善をGCP自体の容易さやAIモデルの能力向上へ単独で帰属させることはできない。[G6](gcp/06-lessons-learned.md)
 
+**本人の観察と限界（説明補足: 2026-10-14）** 構築速度が徐々に上がったと本人は観察している。これは本人の観察であり、統制された因果証明、モデル自体の学習、職業代替の証明ではない。上記の逐次実験の交絡に関する留保は変わらない。
+
 ## 10. AI時代のクラウドエンジニアに何が残るのか
 
 ```mermaid
@@ -290,6 +298,8 @@ flowchart TB
 クラウド固有知識が不要になるという結論ではない。今回も、SG/NSG/Firewall、TrustとPermission、Control PlaneとData Plane、Stateと実体、発報と通知の違いを理解していなければ、AIの提案が要件を満たすか判断できない。
 
 今回の結果が示す価値の移動は、APIやコマンドを記憶して一つずつ操作する作業から、**要件と制約を定義し、AIが提示する設計・差分・証拠をレビューし、結果に責任を持つ仕事へ比重が移ること**である。AIが実装を広く担うほど、何を成功とみなすか、何を禁止するか、いつ停止するかを定義する能力が重要になる。
+
+**学びの補足（2026-10-14）** 全体設計、IAM権限、監視方針、credential境界は、人が把握し設計・設定する必要がある。今回、AIは具体的なPolicyや監視定義を実装したが、それは方針・境界への責任をAIが負ったことを意味しない。実装の担当と、方針・境界への責任は区別して扱う。
 
 ## 11. 結論の適用範囲
 

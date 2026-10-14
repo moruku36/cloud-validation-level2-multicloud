@@ -27,7 +27,7 @@ AWS、Azure、Google CloudでAI主導のTerraformライフサイクルを比較�
 ## English Summary
 
 > **Objective & Scope**:  
-> This repository consolidates three independent validations assessing how autonomously AI (Codex) can design, provision, configure, test, and safely destroy production-grade cloud infrastructure via Terraform across **AWS**, **Azure**, and **GCP**.  
+> This repository consolidates three sequential validations (AWS → Azure → GCP, with lessons carried forward) assessing how far AI (Codex) can implement, configure, test, and safely destroy a minimal, disposable cloud setup via Terraform across **AWS**, **Azure**, and **GCP**, under an overall design and safety boundaries set by a human. It is not a proof of production-grade operation.
 >  
 > **Key Achievements (Level 2 Baseline)**:
 > - **Unified Spec**: High-availability web infrastructure (L7 Load Balancer + 2 Private VMs without direct public SSH) across multi-AZ/subnets.
@@ -45,9 +45,17 @@ AWS、Azure、Google CloudでAI主導のTerraformライフサイクルを比較�
 
 本リポジトリは、**「AI / Codex にどこまでパブリッククラウドのインフラ実装・運用ライフサイクルを任せられるか」** を検証した、AWS・Azure・GCP 3環境の成果物を1つに統合したリポジトリです。
 
-- **位置づけ (LEVEL2)**: 最小構成のWeb基盤（L7 LB + Private VM 2台）を対象に、BootstrapからCI/CD、監視、カオス試験、完全破棄（Clean Destroy）までを実機上で実証（※「LEVEL2」は本検証における検証範囲を示す便宜的呼称であり、業界標準規格ではありません）。
+- **位置づけ (LEVEL2)**: 最小構成のWeb基盤（L7 LB + Private VM 2台）を対象に、BootstrapからCI/CD、監視、カオス試験、完全破棄（Clean Destroy）までを実機上で実証（※「LEVEL2」の定義は下記「資格区分と役割分担」を参照。業界標準規格ではありません）。
 - **使用AI環境**: OpenAI Codex / Google DeepMind Antigravity などの自律型AIエージェントによる検証。
 - **次工程 (LEVEL3)**: 本検証の知見を踏まえ、より高度で曖昧なビジネス要件から自律型AIが設計・評価する [cloud-validation-level3-astra-light](https://github.com/moruku36/cloud-validation-level3-astra-light) へと発展しています。
+
+### 資格区分と役割分担（説明補足: 2026-10-14）
+
+既存実験の説明訂正であり、元の作成日・数値・比較表・証拠・ソースコミット・実験記録は変更していません。
+
+本検証のLevel 1〜3は、各クラウドベンダーの資格体系に見られる段階を参考に、Level 1を基礎、Level 2を管理・実装を中心とした中級、Level 3をより高度なアーキテクト設計・判断として整理した検証区分です。Level 2では[Azure Administrator Associate](https://learn.microsoft.com/en-us/credentials/certifications/azure-administrator/)、[AWS Solutions Architect – Associate](https://aws.amazon.com/certification/certified-solutions-architect-associate/)、[Google Cloud Associate Cloud Engineer](https://cloud.google.com/learn/certification/cloud-engineer)などの資格で扱う領域を参考にしています。各社の資格体系や対象範囲は異なり、公式な共通レベル、試験範囲の網羅、資格との同等性を示すものではありません。より高度なアーキテクト区分の参考: [AWS Solutions Architect – Professional](https://aws.amazon.com/certification/certified-solutions-architect-professional/)、[Azure Solutions Architect Expert](https://learn.microsoft.com/en-us/credentials/certifications/azure-solutions-architect/)、[Google Cloud Professional Cloud Architect](https://cloud.google.com/learn/certification/cloud-architect)、[Google Cloud 資格一覧](https://cloud.google.com/learn/certification)。
+
+役割分担: 全体設計は本人が行いました。LB + VM2台 + ネットワーク疎通のIaaS構成を定め、監視・カオス・フォールトトレランス・API操作を要件にしました。CodexがAWS/Azure/GCPの具体的なコンポーネントを選び、構築と技術課題対応をほぼ実施しました。本人がAWSの結果/チケット/ノウハウをAzureへ、Azureの成功失敗知見をGCPへ引き継ぐ設計にしました。構築速度が徐々に上がったのは本人の観察であり、統制された因果証明、モデル自体の学習、職業代替の証明ではありません（逐次実験の交絡に関する留保は final-report 第9節）。全体設計、IAM権限、監視方針、credential境界は人が把握し設計・設定する必要があるという学びです。AIが具体的なPolicyや監視定義を実装したことと、人が方針・境界に責任を持つことは区別しています。
 
 ---
 
@@ -95,7 +103,7 @@ flowchart TB
 
 ## 3. 検証ライフサイクルフロー
 
-全クラウド共通で、以下の7フェーズをAI主導（人間は承認・安全境界の維持）で完遂しました。
+全クラウド共通で、以下の7フェーズを、人間が全体設計・承認・安全境界の維持を担い、Codexが具体的な実装と技術課題対応を担う形で完遂しました。
 
 ```mermaid
 flowchart LR
